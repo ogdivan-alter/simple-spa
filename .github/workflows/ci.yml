@@ -114,6 +114,18 @@ jobs:
           docker compose -f docker/compose/compose.yaml -f docker/compose/compose.dev.yaml logs
           exit 1
 
+      - name: Escaneo de vulnerabilidades (Docker Scout, solo CRITICAL)
+        # Falla el check si la imagen contiene vulnerabilidades CRITICAL.
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ogdivan/simple-spa:dev
+          only-severities: critical
+          exit-code: true
+          write-comment: false
+          dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Bajar el stack
         if: always()
         run: |

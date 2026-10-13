@@ -87,9 +87,9 @@ Antes de publicar la imagen es requisito ejecutar el escaneo de vulnerabilidades
    ```bash
    docker scout quickview ogdivan/simple-spa:${VERSION}
    ```
-2. Críticas y altas con corrección disponible:
+2. Críticas (criterio bloqueante):
    ```bash
-   docker scout cves --only-severity critical,high --only-fixed ogdivan/simple-spa:${VERSION}
+   docker scout cves --only-severity critical ogdivan/simple-spa:${VERSION}
    ```
 3. Recomendaciones de actualización de la imagen base:
    ```bash
@@ -97,8 +97,10 @@ Antes de publicar la imagen es requisito ejecutar el escaneo de vulnerabilidades
    ```
 
 **Criterio de cierre:** la imagen NO debe publicarse si contiene vulnerabilidades
-`CRITICAL` o `HIGH` con corrección disponible (`fixed`). En tal caso, corregir
-dependencias o actualizar la imagen base y repetir la compilación.
+`CRITICAL` (el pipeline CI lo verifica y bloquea el PR con Docker Scout,
+`only-severities: critical`). Las `HIGH`/`MEDIUM`/`LOW` se revisan pero no bloquean.
+En caso de `CRITICAL`, corregir dependencias o actualizar la imagen base y repetir
+la compilación.
 
 ---
 
