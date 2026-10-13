@@ -1,7 +1,7 @@
 name: cd
 
 # Build + push de la imagen a Docker Hub al integrar en `main` (entorno *staging*).
-# El deploy en Render (deploy hook) se añadirá en el Paso 5.
+# Tras el push, dispara el deploy hook de Render del environment `staging` (Paso 5).
 on:
   push:
     branches: [main]
@@ -46,16 +46,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # --- Paso 5: deploy en Render ---
-  # deploy-staging:
-  #   name: Deploy staging (Render)
-  #   needs: [build-push]
-  #   runs-on: ubuntu-latest
-  #   environment: staging
-  #   steps:
-  #     - name: Disparar deploy hook
-  #       env:
-  #         HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-  #       run: |
-  #         set -euo pipefail
-  #         curl -fsS -X POST "$HOOK"
+  deploy-staging:
+    name: Deploy staging (Render)
+    needs: [build-push]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Disparar deploy hook
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST "$HOOK"
