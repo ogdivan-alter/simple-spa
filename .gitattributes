@@ -12,12 +12,6 @@
 *.md  text eol=lf
 Dockerfile text eol=lf
 
-# YAML (Compose, workflows de CI) y variables de entorno: LF.
-*.yaml text eol=lf
-*.yml  text eol=lf
-.env     text eol=lf
-.env.*   text eol=lf
-
 # Binarios: no tocar.
 *.tar  binary
 *.tar.gz binary
