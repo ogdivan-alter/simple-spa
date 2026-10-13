@@ -1,0 +1,9 @@
+{
+    "name": "Dev Container para SPA simple",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "postStartCommand": 
+//    "bash -c \"HTTP_PROXY=\"${HTTP_PROXY:-1.1.1.1:80}}\" && HTTPS_PROXY=\"${HTTPS_PROXY:-1.1.1.1:80}}\"&& echo \"Acquire::http::Proxy \"$HTTP_PROXY\";\" > /etc/apt/apt.conf.d/proxy.conf&& echo \"Acquire::https::Proxy \"$HTTPS_PROXY\";\" >> /etc/apt/apt.conf.d/proxy.conf && python3 -m http.server 3000 \""
+    "bash -c \"HTTP_PROXY='${HTTP_PROXY:-1.1.1.1:80}}' && HTTPS_PROXY='${HTTPS_PROXY:-1.1.1.1:80}}' && echo 'Acquire::http::Proxy \\\"$HTTP_PROXY\\\";' > /etc/apt/apt.conf.d/proxy.conf && echo 'Acquire::https::Proxy \\\"$HTTPS_PROXY\\\";' >> /etc/apt/apt.conf.d/proxy.conf && python3 -m http.server 3000\""    
+}

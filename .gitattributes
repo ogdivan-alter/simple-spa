@@ -1,0 +1,19 @@
+# Normaliza finales de linea por tipo de archivo,
+# independientemente de core.autocrlf de cada maquina.
+#
+# Los .bat/.cmd REQUIEREN CRLF: cmd.exe no resuelve bien las
+# etiquetas (goto :label) si el archivo usa solo LF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Los scripts de shell y archivos de texto usan LF.
+*.sh  text eol=lf
+*.txt text eol=lf
+*.md  text eol=lf
+Dockerfile text eol=lf
+
+# Binarios: no tocar.
+*.tar  binary
+*.tar.gz binary
+*.tgz  binary
+*.zip  binary

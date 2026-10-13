@@ -1,0 +1,23 @@
+# Contexto de build = raiz de simple-spa.
+# Excluye lo que no debe entrar en la imagen.
+
+.git
+.gitignore
+.gitattributes
+.devcontainer
+
+# Scripts de asistencia y documentacion (no forman parte del contenido servido).
+# OJO: docker/scripts SI se usa (se copia el entrypoint), no excluir esa carpeta.
+docker/build
+docker/docs
+docker/README.md
+docker/backups
+
+# Artefactos pesados y entornos locales.
+*.7z
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+*.log
