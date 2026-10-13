@@ -1,0 +1,18 @@
+# ============================================================
+# Override de DESARROLLO.
+# Construye la imagen desde el Dockerfile y monta src/ en /app,
+# de modo que editar src/index.html se refleja al refrescar el
+# navegador (live edit), sin reconstruir la imagen.
+#
+# Uso:
+#   docker compose -f compose.yaml -f compose.dev.yaml up --build
+# ============================================================
+services:
+  spa:
+    image: ogdivan/simple-spa:dev
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ../../src:/app:ro
+    restart: "no"
