@@ -1,2 +1,5 @@
 # Backups de imagenes Docker (artefactos .tar pesados)
 backups/
+
+# Variables de entorno locales de Compose (configuracion local, no se versiona)
+compose/.env
