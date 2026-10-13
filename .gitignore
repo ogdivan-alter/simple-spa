@@ -30,4 +30,3 @@ backups/
 # Documentos de plan/seguimiento local (no versionados)
 docker/plan-master.md
 plan-ci-cd.md
-instrucciones-pendientes.md
