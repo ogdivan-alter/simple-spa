@@ -9,6 +9,7 @@
 # Scripts de asistencia y documentacion (no forman parte del contenido servido).
 # OJO: docker/scripts SI se usa (se copia el entrypoint), no excluir esa carpeta.
 docker/build
+docker/compose
 docker/docs
 docker/README.md
 docker/backups
