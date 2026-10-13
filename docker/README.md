@@ -36,8 +36,8 @@ simple-spa/
 │   └── index.html              # Contenido de la SPA
 └── docker/
     ├── build/
-    │   ├── linux/{build,run,backup,restore,reset}.sh
-    │   └── win/{build,run,backup,restore,reset}.bat
+    │   ├── linux/{bump,build,run,backup,restore,reset}.sh
+    │   └── win/{bump,build,run,backup,restore,reset}.bat
     ├── docs/
     │   └── procedimiento.md    # Procedimiento detallado
     ├── scripts/
@@ -58,7 +58,33 @@ simple-spa/
 
 ## 🚀 Uso rápido
 
-### 1. Construir la imagen
+### 1. Subir la versión (bump)
+
+La versión se mantiene en `docker/version/VERSION.txt` (fuente única) y el
+script `bump` la incrementa con SemVer. **No hace commit**: deja el cambio listo
+para el PR de release.
+
+```powershell
+# Windows (docker\build\win)
+.\bump.bat patch        # 1.0.0 -> 1.0.1
+.\bump.bat minor        # 1.0.0 -> 1.1.0
+.\bump.bat major        # 1.0.0 -> 2.0.0
+.\bump.bat VERSION=2.1.0
+```
+
+```bash
+# Debian (docker/build/linux)
+./bump.sh patch
+./bump.sh minor
+./bump.sh major
+./bump.sh VERSION=2.1.0
+```
+
+Sin argumentos muestra la versión actual y la ayuda. El incremento acompaña al
+tipo de cambio entregado: `fix` → PATCH, `feat` → MINOR, incompatible → MAJOR
+(flujo de release en [`../docs/CONTRIBUTING.md`](../docs/CONTRIBUTING.md) §4).
+
+### 2. Construir la imagen
 
 La versión se lee de `docker/version/VERSION.txt` y la imagen resultante es
 `ogdivan/simple-spa:<versión>` (actualmente `1.0.0`).
@@ -97,7 +123,7 @@ Ejemplo:
 .\build.bat PORT=8080 HTTP_PROXY=http://10.0.0.1:8080 HTTPS_PROXY=http://10.0.0.1:8080
 ```
 
-### 2. Ejecutar el contenedor
+### 3. Ejecutar el contenedor
 
 ```powershell
 # Windows (docker\build\win)
@@ -127,7 +153,7 @@ http://localhost:3000/?quien=ALGUIEN
 > y el del runtime (`-e`, en `run`) son independientes y pueden tener valores
 > distintos. Ver [`docs/procedimiento.md`](docs/procedimiento.md).
 
-### 3. Backup y restore
+### 4. Backup y restore
 
 Exportan e importan la **imagen Docker** con `docker save` / `docker load`.
 
@@ -160,7 +186,7 @@ Exportan e importan la **imagen Docker** con `docker save` / `docker load`.
 | `IMAGE` | `ogdivan/simple-spa` | Nombre de la imagen. |
 | `BACKUP_DIR` | `docker/backups` | Carpeta de los `.tar`. |
 
-### 4. Reset (limpieza local)
+### 5. Reset (limpieza local)
 
 Elimina la imagen y sus contenedores asociados en el entorno local
 (`docker rm -f` de los contenedores + `docker rmi` de la imagen).
@@ -212,6 +238,8 @@ Ver [`docs/procedimiento.md`](docs/procedimiento.md) para el procedimiento detal
 |----------|--------------------------|
 | `No existe el archivo de version` | Revisa `docker/version/VERSION.txt` (en Linux distingue mayúsculas). |
 | `Parametro desconocido` | `build` acepta `VERSION`, `IMAGE`, `PORT`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`; `run` además `NAME`, `DETACH`; `backup`/`restore`/`reset` aceptan `VERSION`, `IMAGE` (y `backup`/`restore` además `BACKUP_DIR`, `restore` además `FILE`). |
+| `argumento no reconocido` (bump) | `bump` acepta `major`/`minor`/`patch` o `VERSION=x.y.z`. |
+| `VERSION debe ser semver` (bump) | Usa el formato `X.Y.Z` (p. ej. `VERSION=2.1.0`). |
 | Build falla por red | Verifica los `--build-arg` de proxy o deja que la imagen base resuelva el proxy del daemon. |
 | `La imagen ... no existe localmente` (backup) | Ejecuta primero el build. |
 | `No existe el archivo de backup` (restore) | Ejecuta primero `backup` o indica la ruta con `FILE=...`. |

@@ -95,7 +95,53 @@ ci: añade workflow de build en pull_request
 
 ---
 
-## 4. Referencias
+## 4. Versionado y flujo de release
+
+La versión vive en un único sitio: **`docker/version/VERSION.txt`** (formato
+`X.Y.Z`, SemVer). Es la fuente que usan los builds locales y el pipeline para
+etiquetar la imagen (`:<version>` en producción).
+
+Para subirla usa el script de bump (no edites el fichero a mano):
+
+```bash
+# Linux / macOS
+docker/build/linux/bump.sh patch        # 1.0.0 -> 1.0.1
+docker/build/linux/bump.sh minor        # 1.0.0 -> 1.1.0
+docker/build/linux/bump.sh major        # 1.0.0 -> 2.0.0
+docker/build/linux/bump.sh VERSION=2.1.0
+```
+
+```bat
+REM Windows
+docker\build\win\bump.bat patch
+docker\build\win\bump.bat minor
+docker\build\win\bump.bat major
+docker\build\win\bump.bat VERSION=2.1.0
+```
+
+El script **solo actualiza `VERSION.txt`** (no hace commit). El incremento debe
+acompañar al tipo de cambio que se entrega: `fix` → PATCH, `feat` → MINOR,
+cambio incompatible → MAJOR (ver §2).
+
+Flujo de release (promoción desde `release/<version>`):
+
+```text
+release/<version> ──PR──▶ main ──PR──▶ production
+```
+
+1. Crea la rama desde `develop`: `git switch -c release/1.1.0 develop`.
+2. Ejecuta el bump (`bump.sh minor`) y comprueba `VERSION.txt`.
+3. Commit siguiendo §2: `chore(release): 1.1.0`.
+4. PR `release/1.1.0 → main`; al mergear, `cd.yml` publica `:staging`.
+5. PR `main → production`; al mergear y aprobar el Environment `production`,
+   `cd.yml` publica `:1.1.0` / `:latest` y despliega producción.
+
+> El bump se mantiene **fuera del pipeline** a propósito: la versión se decide y
+> revisa en el PR de release, no se auto-incrementa en cada merge.
+
+---
+
+## 5. Referencias
 
 - Conventional Commits: <https://www.conventionalcommits.org/>
 - Semantic Versioning: <https://semver.org/>
