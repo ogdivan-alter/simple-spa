@@ -1,0 +1,123 @@
+name: ci
+
+# Validación automática en cada Pull Request hacia las ramas de entorno.
+# Construye la imagen y comprueba con Docker Compose que la SPA responde.
+on:
+  pull_request:
+    branches: [develop, main, production]
+
+# Evita ejecuciones duplicadas para la misma rama.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Bloquea PRs con un flujo de ramas no permitido (p. ej. feature/* -> main).
+  # Para que impida el merge debe marcarse como "required status check"
+  # en la branch protection de develop, main y production.
+  guard:
+    name: Validar rama origen
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comprobar combinación base/head
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          echo "PR: $HEAD -> $BASE"
+          ok=0
+          case "$BASE" in
+            develop)
+              case "$HEAD" in
+                feature/*|fix/*|chore/*|docs/*|ci/*|refactor/*|test/*|perf/*|release/*|hotfix/*) ok=1 ;;
+              esac ;;
+            main)
+              case "$HEAD" in
+                develop|release/*|hotfix/*) ok=1 ;;
+              esac ;;
+            production)
+              case "$HEAD" in
+                main|release/*|hotfix/*) ok=1 ;;
+              esac ;;
+          esac
+          if [ "$ok" -eq 1 ]; then
+            {
+              echo "### ✅ Flujo de ramas válido"
+              echo ""
+              echo "\`$HEAD\` → \`$BASE\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Rama origen válida: '$HEAD' -> '$BASE'"
+            exit 0
+          fi
+
+          # Sugerencia de corrección según la rama origen.
+          case "$HEAD" in
+            develop)
+              fix="La rama \`develop\` se integra en \`main\`, no en \`$BASE\`." ;;
+            main)
+              fix="La rama \`main\` se integra en \`production\`, no en \`$BASE\`." ;;
+            *)
+              fix="Cambia la rama *base* de este PR a \`develop\` (botón **Edit** junto al título)." ;;
+          esac
+
+          {
+            echo "### ❌ Flujo de ramas no permitido"
+            echo ""
+            echo "**PR detectado:** \`$HEAD\` → \`$BASE\`"
+            echo ""
+            echo "Combinaciones permitidas:"
+            echo ""
+            echo "| Origen | Destino permitido |"
+            echo "| --- | --- |"
+            echo "| \`feature/*\`, \`fix/*\`, \`chore/*\`, \`docs/*\`, \`ci/*\`, \`refactor/*\`, \`test/*\`, \`perf/*\` | \`develop\` |"
+            echo "| \`release/*\`, \`hotfix/*\` | \`develop\`, \`main\`, \`production\` |"
+            echo "| \`develop\` | \`main\` |"
+            echo "| \`main\` | \`production\` |"
+            echo ""
+            echo "**Qué hacer:** $fix"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::error::Flujo de ramas no permitido: '$HEAD' -> '$BASE'."
+          exit 1
+
+  build-test:
+    name: Build y smoke test
+    needs: [guard]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Construir la imagen y levantar el stack (Docker Compose)
+        run: |
+          docker compose \
+            -f docker/compose/compose.yaml \
+            -f docker/compose/compose.dev.yaml \
+            up -d --build
+
+      - name: Smoke test (espera HTTP 200)
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 15); do
+            if curl -fsS http://localhost:3000/ >/dev/null; then
+              echo "Smoke test OK"
+              exit 0
+            fi
+            echo "esperando a que responda... ($i/15)"
+            sleep 2
+          done
+          echo "::error::Smoke test fallido (sin HTTP 200)"
+          docker compose -f docker/compose/compose.yaml -f docker/compose/compose.dev.yaml logs
+          exit 1
+
+      - name: Bajar el stack
+        if: always()
+        run: |
+          docker compose \
+            -f docker/compose/compose.yaml \
+            -f docker/compose/compose.dev.yaml \
+            down -v
