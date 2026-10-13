@@ -15,8 +15,78 @@ permissions:
   contents: read
 
 jobs:
+  # Bloquea PRs con un flujo de ramas no permitido (p. ej. feature/* -> main).
+  # Para que impida el merge debe marcarse como "required status check"
+  # en la branch protection de develop, main y production.
+  guard:
+    name: Validar rama origen
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comprobar combinación base/head
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          echo "PR: $HEAD -> $BASE"
+          ok=0
+          case "$BASE" in
+            develop)
+              case "$HEAD" in
+                feature/*|fix/*|chore/*|docs/*|ci/*|refactor/*|test/*|perf/*|release/*|hotfix/*) ok=1 ;;
+              esac ;;
+            main)
+              case "$HEAD" in
+                develop|release/*|hotfix/*) ok=1 ;;
+              esac ;;
+            production)
+              case "$HEAD" in
+                main|release/*|hotfix/*) ok=1 ;;
+              esac ;;
+          esac
+          if [ "$ok" -eq 1 ]; then
+            {
+              echo "### ✅ Flujo de ramas válido"
+              echo ""
+              echo "\`$HEAD\` → \`$BASE\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Rama origen válida: '$HEAD' -> '$BASE'"
+            exit 0
+          fi
+
+          # Sugerencia de corrección según la rama origen.
+          case "$HEAD" in
+            develop)
+              fix="La rama \`develop\` se integra en \`main\`, no en \`$BASE\`." ;;
+            main)
+              fix="La rama \`main\` se integra en \`production\`, no en \`$BASE\`." ;;
+            *)
+              fix="Cambia la rama *base* de este PR a \`develop\` (botón **Edit** junto al título)." ;;
+          esac
+
+          {
+            echo "### ❌ Flujo de ramas no permitido"
+            echo ""
+            echo "**PR detectado:** \`$HEAD\` → \`$BASE\`"
+            echo ""
+            echo "Combinaciones permitidas:"
+            echo ""
+            echo "| Origen | Destino permitido |"
+            echo "| --- | --- |"
+            echo "| \`feature/*\`, \`fix/*\`, \`chore/*\`, \`docs/*\`, \`ci/*\`, \`refactor/*\`, \`test/*\`, \`perf/*\` | \`develop\` |"
+            echo "| \`release/*\`, \`hotfix/*\` | \`develop\`, \`main\`, \`production\` |"
+            echo "| \`develop\` | \`main\` |"
+            echo "| \`main\` | \`production\` |"
+            echo ""
+            echo "**Qué hacer:** $fix"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::error::Flujo de ramas no permitido: '$HEAD' -> '$BASE'."
+          exit 1
+
   build-test:
     name: Build y smoke test
+    needs: [guard]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
