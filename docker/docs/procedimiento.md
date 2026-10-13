@@ -42,8 +42,29 @@ valor por defecto (`3000`) debe coincidir entre el `Dockerfile` y
 
 ### Paso 1: Verificación de la Versión
 
-1. Abrir o actualizar `docker/version/VERSION.txt`.
+`docker/version/VERSION.txt` es la **fuente única** de la versión (formato `X.Y.Z`).
+
+1. Para subir la versión usa el script de bump (no edites el fichero a mano):
+
+   ```bash
+   # Linux / macOS
+   docker/build/linux/bump.sh patch        # 1.0.0 -> 1.0.1
+   docker/build/linux/bump.sh minor        # 1.0.0 -> 1.1.0
+   docker/build/linux/bump.sh VERSION=2.1.0
+   ```
+
+   ```cmd
+   REM Windows
+   docker\build\win\bump.bat patch
+   docker\build\win\bump.bat minor
+   docker\build\win\bump.bat VERSION=2.1.0
+   ```
+
 2. Verificar que contenga únicamente el número de versión deseado (ej. `1.0.0`).
+
+El incremento acompaña al tipo de cambio entregado: `fix` → PATCH, `feat` → MINOR,
+cambio incompatible → MAJOR. El detalle del flujo de release está en
+`docs/CONTRIBUTING.md` (§4).
 
 ### Paso 2: Configuración de Parámetros de Red y Proxy (build)
 
@@ -160,7 +181,7 @@ El flujo determinista y no interactivo de este procedimiento es la base del
 pipeline previsto:
 
 ```
-[version/VERSION.txt] → build.sh → (docker scout) → push → backup.sh
+[bump] → [version/VERSION.txt] → build.sh → (docker scout) → push → backup.sh
 ```
 
 Cada paso expone parámetros `CLAVE=valor` y códigos de salida adecuados para su
