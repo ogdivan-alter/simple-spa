@@ -1,0 +1,13 @@
+# ============================================================
+# Override de PRODUCCION (paridad local).
+# Ejecuta la imagen publicada con tag :latest, como la consume
+# el servicio de produccion en la nube.
+#
+# Uso:
+#   docker compose -f compose.yaml -f compose.prod.yaml up
+# ============================================================
+services:
+  spa:
+    image: ogdivan/simple-spa:${PROD_TAG:-latest}
+    pull_policy: always
+    restart: always

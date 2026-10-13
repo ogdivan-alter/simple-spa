@@ -1,0 +1,23 @@
+# ============================================================
+# simple-spa - Compose base (runtime comun a todos los entornos)
+#
+# Este archivo se combina con un override segun el entorno:
+#   desarrollo : -f compose.yaml -f compose.dev.yaml
+#   staging    : -f compose.yaml -f compose.staging.yaml
+#   produccion : -f compose.yaml -f compose.prod.yaml
+#
+# Variables (opcionales; los defaults estan en linea):
+#   VERSION    tag de la imagen publicada        (default 1.0.0)
+#   HOST_PORT  puerto publicado en el host       (default 3000)
+# ============================================================
+name: simple-spa
+
+services:
+  spa:
+    image: ogdivan/simple-spa:${VERSION:-1.0.0}
+    environment:
+      # Debe coincidir con el default del Dockerfile/entrypoint (3000).
+      PORT: "3000"
+    ports:
+      - "${HOST_PORT:-3000}:3000"
+    restart: unless-stopped
