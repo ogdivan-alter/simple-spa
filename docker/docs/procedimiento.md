@@ -6,8 +6,9 @@ Este documento define el procedimiento técnico estándar para el ciclo de vida
 de la imagen Docker de la SPA estática (`ogdivan/simple-spa`): lectura
 automatizada de versión, configuración de red/proxy (build y runtime),
 compilación, auditoría obligatoria de seguridad con Docker Scout, publicación
-controlada en Docker Hub y respaldo/restauración offline. Sirve además como
-base para la futura automatización CI/CD.
+controlada en Docker Hub y respaldo/restauración offline. Este procedimiento es
+la base del pipeline CI/CD implementado en GitHub Actions
+(`.github/workflows/ci.yml` y `cd.yml`).
 
 ---
 
@@ -136,6 +137,10 @@ la compilación.
    docker push ogdivan/simple-spa:${VERSION}
    ```
 
+> En el pipeline la publicación es automática: al integrar en `main` se publica
+> `:staging` y al integrar (con aprobación del Environment) en `production` se
+> publican `:<versión>` y `:latest` (ver §9).
+
 ---
 
 ## 7. Backup y Restauración de la Imagen
@@ -175,14 +180,23 @@ La imagen se exporta a `.tar` (offline) con `docker save` y se reimporta con
 
 ---
 
-## 9. Base para CI/CD
+## 9. Automatización CI/CD (implementada)
 
 El flujo determinista y no interactivo de este procedimiento es la base del
-pipeline previsto:
+pipeline en GitHub Actions:
 
 ```
-[bump] → [version/VERSION.txt] → build.sh → (docker scout) → push → backup.sh
+[bump] → [version/VERSION.txt] → build → (docker scout) → push → deploy
 ```
 
-Cada paso expone parámetros `CLAVE=valor` y códigos de salida adecuados para su
-invocación desde GitHub Actions o GitLab CI.
+- **CI** ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)): en cada
+  Pull Request valida el flujo de ramas, construye la imagen con Docker Compose,
+  ejecuta un *smoke test* (HTTP 200) y un escaneo **Docker Scout** que bloquea si
+  hay vulnerabilidades `CRITICAL`.
+- **CD** ([`.github/workflows/cd.yml`](../../.github/workflows/cd.yml)): al
+  integrar en `main` publica `:staging` y despliega *staging*; al integrar en
+  `production` (con aprobación del Environment) publica `:<versión>`/`:latest` y
+  despliega producción.
+
+Cada script expone parámetros `CLAVE=valor` y códigos de salida adecuados para su
+invocación local o desde el pipeline.
