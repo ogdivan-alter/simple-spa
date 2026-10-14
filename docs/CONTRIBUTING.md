@@ -10,7 +10,7 @@ mantener un historial legible y habilitar la automatización del CI/CD
 
 | Rama | Propósito | Entorno |
 |---|---|---|
-| `main` | Línea estable | — (base) |
+| `main` | Línea estable (integración previa a producción) | staging |
 | `develop` | Integración | development (local) |
 | `production` | Código desplegado en producción | production |
 | `feature/<tema>` | Nueva funcionalidad o trabajo | — |
