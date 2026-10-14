@@ -6,7 +6,7 @@
 ## 🎯 Objetivo
 
 - Empaquetar y servir la SPA estatica en el puerto 3000 (parametrizable).
-- Asistir el ciclo **build → run → backup → restore** con scripts reproducibles.
+- Asistir el ciclo **bump → build → run → backup → restore** con scripts reproducibles.
 - Mantener scripts equivalentes para Windows y Linux (Debian).
 - Soportar build y runtime con configuración de proxy independiente.
 
@@ -229,8 +229,12 @@ Para cambiarlo, reconstruye con `PORT=xxxx` (afecta `EXPOSE`) y/o ejecuta con
 
 ## 📚 Documentación
 
-Ver [`docs/procedimiento.md`](docs/procedimiento.md) para el procedimiento detallado
-(build, auditoría de seguridad, publicación y backup/restore).
+- [`docs/procedimiento.md`](docs/procedimiento.md): procedimiento detallado
+  (build, auditoría de seguridad, publicación y backup/restore).
+- [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) y
+  [`cd.yml`](../.github/workflows/cd.yml): pipeline CI/CD (checks de PR y
+  despliegue por entornos).
+- [`../docs/CONTRIBUTING.md`](../docs/CONTRIBUTING.md): ramas, commits y versionado.
 
 ## 🛠️ Solución de problemas
 
@@ -249,6 +253,6 @@ Ver [`docs/procedimiento.md`](docs/procedimiento.md) para el procedimiento detal
 
 ## 🗺️ Próximos pasos (ideas)
 
-- [ ] `docker-compose.yml`
-- [ ] Pipeline CI/CD (GitHub Actions) apoyado en `docker/build/linux/*.sh`
-- [ ] Limpieza/alineación del `.devcontainer`
+- [x] Docker Compose (`docker/compose/*.yaml`).
+- [x] Pipeline CI/CD (GitHub Actions) apoyado en `docker/build/linux/*.sh`.
+- [ ] Limpieza/alineación del `.devcontainer`.

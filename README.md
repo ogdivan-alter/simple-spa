@@ -21,19 +21,21 @@ contenedorizada desde el código hasta la nube, aplicando buenas prácticas:
 
 ## ¿Qué hace la aplicación?
 
-Muestra una página sencilla con un saludo personalizado: si se indica un nombre,
-la página lo saluda como *"Bienvenido \<nombre\>"*. No requiere base de datos ni
-servicios externos.
+Muestra una página sencilla con un saludo personalizado: con `?quien=<nombre>`
+muestra «`<nombre>` está por aquí»; sin parámetro, «Alguien está por aquí?».
+No requiere base de datos ni servicios externos.
+
+Ejemplo: <https://simple-spa-r9bt.onrender.com/?quien=Orlando>
 
 ---
 
 ## Entornos
 
-| Entorno | Descripción |
-|---|---|
-| **Desarrollo** | Se ejecuta en la máquina local; ideal para trabajar y ver los cambios al instante. |
-| **Staging** (pre-producción) | Réplica previa a producción, para validar antes de publicar. |
-| **Producción** | Versión estable disponible para los usuarios. |
+| Entorno | Descripción | URL |
+|---|---|---|
+| **Desarrollo** | Se ejecuta en la máquina local (Docker Compose); ideal para trabajar y ver los cambios al instante. | `http://localhost:3000` |
+| **Staging** (pre-producción) | Réplica previa a producción, para validar antes de publicar. | <https://simple-spa-staging.onrender.com> |
+| **Producción** | Versión estable disponible para los usuarios. | <https://simple-spa-r9bt.onrender.com> |
 
 ---
 
@@ -47,18 +49,30 @@ feature → develop → main → production
 
 - Cada funcionalidad se desarrolla en su **propia rama**.
 - Se integra mediante **Pull Request** (revisión + validación automática).
-- La promoción entre entornos también se hace por **Pull Request**;
-  el paso a **producción requiere aprobación**.
+- La promoción entre entornos también se hace por **Pull Request**; el paso a
+  **producción requiere aprobación** (Environment `production` de GitHub).
+- Convenciones de ramas y commits en [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
+
+---
+
+## Pipeline CI/CD
+
+| Workflow | Disparador | Qué hace |
+|---|---|---|
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Pull Request hacia `develop`, `main` o `production` | Valida el flujo de ramas, construye la imagen con Docker Compose, ejecuta un *smoke test* (HTTP 200) y un escaneo **Docker Scout** que bloquea si hay vulnerabilidades **`CRITICAL`**. |
+| [`.github/workflows/cd.yml`](.github/workflows/cd.yml) | push a `main` o `production` | Construye y publica la imagen en **Docker Hub** y dispara el *deploy hook* de **Render**. |
+
+Imagen publicada: `ogdivan/simple-spa` con tags `:staging`, `:<versión>`, `:latest` y `:sha-<commit>`.
 
 ---
 
 ## Estado del proyecto
 
 - [x] Aplicación creada y contenedorizada.
-- [x] Entorno de desarrollo reproducible en local.
-- [ ] Integración continua (automatización al proponer un cambio).
-- [ ] Despliegue en la nube por entornos.
-- [ ] Validación del ciclo completo (cambio → Pull Request → nube).
+- [x] Entorno de desarrollo reproducible en local (Docker Compose).
+- [x] Integración continua (build + smoke test + Docker Scout en cada PR).
+- [x] Despliegue en la nube por entornos (Docker Hub → Render).
+- [x] Validación del ciclo completo (cambio → Pull Request → nube).
 
 ---
 
@@ -66,8 +80,9 @@ feature → develop → main → production
 
 | Documento | Contenido |
 |---|---|
-| [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Convenciones de ramas y commits. |
-| [`docker/README.md`](docker/README.md) | Guía técnica de uso y procedimientos. |
+| [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Convenciones de ramas, commits, versionado y flujo de release. |
+| [`docker/README.md`](docker/README.md) | Guía técnica de uso (scripts `build`, `run`, `backup`, `restore`, `reset`, `bump`). |
+| [`docker/docs/procedimiento.md`](docker/docs/procedimiento.md) | Procedimiento operativo detallado de la imagen. |
 
 ---
 
